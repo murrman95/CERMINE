@@ -36,6 +36,7 @@ import java.io.Writer;
 import java.util.HashMap;
 import java.util.Map;
 import javax.imageio.ImageIO;
+import javax.json.JsonWriter;
 import org.jdom.DocType;
 import pl.edu.icm.cermine.bibref.model.BibEntry;
 import pl.edu.icm.cermine.configuration.ExtractionConfigRegister;
@@ -48,6 +49,7 @@ import pl.edu.icm.cermine.metadata.model.DocumentMetadata;
 import pl.edu.icm.cermine.structure.model.BxDocument;
 import pl.edu.icm.cermine.structure.model.BxImage;
 import pl.edu.icm.cermine.structure.transformers.BxDocumentToTrueVizWriter;
+import pl.edu.icm.cermine.structure.transformers.BxDocumentToJSONWriter;
 import pl.edu.icm.cermine.tools.timeout.Timeout;
 import pl.edu.icm.cermine.tools.timeout.TimeoutException;
 import pl.edu.icm.cermine.tools.timeout.TimeoutRegister;
@@ -179,14 +181,23 @@ public class ContentExtractor {
         }
     }
 
+    private BxDocument getBxDocumentPlain(Timeout timeout)
+            throws AnalysisException, TimeoutException {
+        try {
+            TimeoutRegister.set(timeout);
+            TimeoutRegister.get().check();
+            return extractor.getBxDocumentPlain();
+        } finally {
+            TimeoutRegister.remove();
+        }
+    }
     /**
      * Extracts geometric structure.
      *
      * @return geometric structure
      * @throws AnalysisException AnalysisException
      * @throws TimeoutException thrown when timeout deadline has passed. See
-     * {@link #setTimeout(long)} for additional information about the timeout.
-     */
+     * {@link #setTimeout(long)} createContentExtractor(
     public BxDocument getBxDocument()
             throws AnalysisException, TimeoutException {
         return getBxDocument(mainTimeout);
@@ -205,7 +216,15 @@ public class ContentExtractor {
             throws AnalysisException, TimeoutException {
         return getBxDocument(combineWithMainTimeout(timeoutSeconds));
     }
-    
+
+    public BxDocument getBxDocument()
+            throws AnalysisException, TimeoutException {
+        return getBxDocument(mainTimeout);
+    }
+    public BxDocument getBxDocumentPlain()
+            throws AnalysisException, TimeoutException {
+        return getBxDocument(mainTimeout);
+    }
     private BxDocument getBxDocumentWithGeneralLabels(Timeout timeout)
             throws AnalysisException, TimeoutException {
         try {
@@ -726,7 +745,8 @@ public class ContentExtractor {
         return Timeout.min(mainTimeout, local);
     }
 
-    public static void main(String[] args) throws ParseException, AnalysisException, IOException, TransformationException {
+    public static void main(String[] args) throws ParseException, AnalysisException, IOException, TransformationException{
+    	System.out.println("Starting program");
         CommandLineOptionsParser parser = new CommandLineOptionsParser();
         String error = parser.parse(args);
         if (error != null) {
@@ -830,7 +850,14 @@ public class ContentExtractor {
                     Writer fw = new OutputStreamWriter(new FileOutputStream(outputs.get("trueviz")), "UTF-8");
                     writer.write(fw, Lists.newArrayList(doc), "UTF-8");
                 }
-                
+
+                // Our work
+                if (outputs.containsKey("json")) {
+                    BxDocument doc = extractor.getBxDocumentWithSpecificLabels();
+                    BxDocumentToJSONWriter writer = new BxDocumentToJSONWriter();
+                    Writer fw = new OutputStreamWriter(new FileOutputStream(outputs.get("json")), "UTF-8");
+                    writer.write(fw, Lists.newArrayList(doc), "UTF-8");
+                }
                 if (outputs.containsKey("zones")) {
                     Element text = extractor.getLabelledFullText();
                     XMLOutputter outputter = new XMLOutputter(Format.getPrettyFormat());
@@ -856,7 +883,10 @@ public class ContentExtractor {
                 printException(ex);
             } catch (TimeoutException ex) {
                 printException(ex);
-            } finally {
+            } catch (Exception e) {
+				// TODO Auto-generated catch block
+				printException(e);
+			} finally {
                 if (extractor != null) {
                     extractor.removeTimeout();
                 }

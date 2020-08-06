@@ -130,7 +130,18 @@ public class InternalContentExtractor {
         doWork(Step.INITIAL_CLASSIFICATION);
         return BxModelUtils.deepClone(bxDocument);
     }
-    
+
+    /**
+     * Extracts geometric structure without any labels from the classifier.
+     * 
+     * @return geometric structure
+     * @throws AnalysisException AnalysisException
+     */
+    public BxDocument getBxDocumentPlain() throws AnalysisException {
+        doWork(Step.READING_ORDER); 
+        return BxModelUtils.deepClone(bxDocument);
+    }
+
     /**
      * Extracts geometric structure with general labels.
      * 

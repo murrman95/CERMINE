@@ -1,22 +1,4 @@
-/**
- * This file is part of CERMINE project.
- * Copyright (c) 2011-2018 ICM-UW
- *
- * CERMINE is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * CERMINE is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with CERMINE. If not, see <http://www.gnu.org/licenses/>.
- */
-
-package pl.edu.icm.cermine;
+package chris.tests;
 
 import com.google.common.collect.Lists;
 import java.io.*;
@@ -25,23 +7,14 @@ import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 import static org.junit.Assert.*;
+
+import pl.edu.icm.cermine.ContentExtractor;
+import pl.edu.icm.cermine.ContentExtractorLoopTest;
 import pl.edu.icm.cermine.exception.AnalysisException;
 import pl.edu.icm.cermine.structure.model.BxDocument;
 import pl.edu.icm.cermine.structure.transformers.BxDocumentToJSONWriter;
 
-/**
- * @author Dominika Tkaczyk (d.tkaczyk@icm.edu.pl)
- */
-public class ContentExtractorLoopTest {
-    static final private List<String> TEST_PDFS =
-            Lists.newArrayList(
-                    "/pl/edu/icm/cermine/test1.pdf",
-                    "/pl/edu/icm/cermine/test2.pdf",
-                    "/pl/edu/icm/cermine/test3.pdf",
-                    "/pl/edu/icm/cermine/test4.pdf",
-                    "/pl/edu/icm/cermine/test5.pdf",
-                    "/pl/edu/icm/cermine/test6.pdf"
-            );
+public class CerminJsonTest {
 
     private ContentExtractor extractor;
     
@@ -54,14 +27,21 @@ public class ContentExtractorLoopTest {
     @Test
     public void extractionLoopTest() throws Exception {
         List<String> titles = new ArrayList<String>();
-        int fileLength = TEST_PDFS.get(0).length();
-        for (String file : TEST_PDFS) {
-            InputStream testStream = ContentExtractorLoopTest.class.getResourceAsStream(file);
+        File baseDir = new File ("/home/murrman/cermine/CERMINE/cermine-impl/target/test_pdfs/");
+        File[] fileList = baseDir.listFiles();
+        for (File file : fileList) {
+            String fileName = file.getName();
+            String filePath = file.getAbsolutePath();
+            String filePathBase = filePath.substring(0,filePath.length() -4);
+            System.out.println("fileName is " + fileName);
+        	int fileLength = fileName.length();
+        	String fileNameBase =  fileName.substring(0, fileLength-4);
+            InputStream testStream = new FileInputStream(file);
             extractor.setPDF(testStream);
             
-            BxDocument doc = extractor.getBxDocumentPlain();
+            BxDocument doc = extractor.getBxDocumentWithSpecificLabels();
             BxDocumentToJSONWriter writer = new BxDocumentToJSONWriter();
-            Writer fw = new OutputStreamWriter(new FileOutputStream(file.substring(0,fileLength-4) + ".json"), "UTF-8");
+            Writer fw = new OutputStreamWriter(new FileOutputStream(filePathBase + ".json"), "UTF-8");
             writer.write(fw, Lists.newArrayList(doc), "UTF-8");
             //extractor.getContentAsNLM();
             //titles.add(extractor.getMetadata().getTitle());
@@ -76,5 +56,4 @@ public class ContentExtractorLoopTest {
                 "VESPA: Very large-scale Evolutionary and Selective Pressure Analyses"),
             titles); 
     }
-
 }
