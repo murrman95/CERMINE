@@ -1,3 +1,20 @@
+#New JSON-blockify use
+### Step 1: Build cermine.
+    
+    $ cd cermine-impl
+    $ mvn compile assembly:single
+    
+Then the .jar file will be in the target foler
+
+### Step 2: Use jar file to extract blocks from pdfs.
+
+    $ java -cp cermine-custom.jar pl.edu.icm.cermine.ContentExtractor -path path/to/pdfs/ -outputs json
+
+Then path/to/pdfs/ will be populated with .json files containing text block representation of all the pdfs
+
+
+
+
 Content ExtRactor and MINEr
 ===========================
 
