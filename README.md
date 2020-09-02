@@ -1,4 +1,4 @@
-#New JSON-blockify use
+# New JSON-blockify use
 ### Step 1: Build cermine.
     
     $ cd cermine-impl
